@@ -1,6 +1,5 @@
 # SurfaceCompare
 
-# SurfaceCompare
 Comparing the orientation of surfaces
 The application SurfaceCompare aims to compare the orientation of geological surfaces. 
 

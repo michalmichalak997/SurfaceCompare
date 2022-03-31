@@ -1,0 +1,1020 @@
+---
+title: "Statistical-analysis_Angular_distances"
+author: "Filip Turoboś"
+date: "31.03.2022"
+output: html_document
+---
+
+# Analysis of angular distances
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(MASS)
+library(boot) 
+library(ggplot2)
+library(scales)
+library(dplyr)
+library(ggpubr)
+```
+
+Functions to generate confidence intervals for the mean/standard deviation (assuming normality and not):
+```{r}
+bootmean<- function(data, indices) { 
+  d <- data[indices] 
+    return(mean(d))
+} 
+
+bootsd<- function(data, indices) { 
+  d <- data[indices] 
+    return(sd(d))
+}
+
+bootvar<- function(data, indices) { 
+  d <- data[indices] 
+    return(var(d))
+} 
+
+bootstrapCI<- function(data0, reps,alpha,statistic = 'mean'){
+
+  if(statistic == 'mean'){
+    results <- boot(data=data0, statistic=bootmean, R=reps)
+    statval <- mean(data0)
+  }
+  if(statistic == 'variance'){
+    results <- boot(data=data0, statistic=bootvar, R=reps)
+    statval <- var(data0)
+  }
+  if(statistic == 'standard_deviation'){
+    results <- boot(data=data0, statistic=bootsd, R=reps)
+    statval <- sd(data0)
+  }
+print(results) 
+plot(results)
+a<-boot.ci(results, type=, conf=1-alpha)
+a
+print(paste(statistic,' of provided sample without normality assumption: ', toString(statval)))
+print(paste(statistic,' confidence interval for sample: [', toString(a$normal[2:3]),']'))
+}
+
+generate_confidence_intervals_for_means<-function(sample,alpha,normality = TRUE, seed = 2121){ 
+if(normality){
+  print(paste("Mean of provided sample under normality assumption: ", toString(mean(sample))))
+degrees.of.freedom <- length(sample) - 1
+t.score <- qt(p=alpha/2, df=degrees.of.freedom, lower.tail=F)
+sample.standard.error <- sd(sample)/sqrt(length(sample))*t.score
+print(paste("Confidence interval for sample: [ ",toString(mean(sample)-sample.standard.error),' ',toString(mean(sample)+sample.standard.error),' ]'))
+}
+else{
+  set.seed(seed)
+  bootstrapCI(sample,5000,alpha)
+} 
+}
+```
+
+```{r}
+generate_confidence_intervals_for_variance<-function(sample,alpha,normality = TRUE, seed = 2121){
+if(normality){
+print(paste("Variance of provided sample under normality assumption: ", toString(var(sample))))
+degrees.of.freedom <- length(sample) - 1
+t.score <- qchisq(p=alpha/2, df=degrees.of.freedom, lower.tail =T)
+t.score2 <- qchisq(p=1-alpha/2, df=degrees.of.freedom, lower.tail = T)
+sample.upperestimate <- var(sample)*degrees.of.freedom/t.score
+sample.lowerestimate <- var(sample)*degrees.of.freedom/t.score2
+print(paste("Confidence interval for sample: [ ",toString(sample.lowerestimate),' ',toString(sample.upperestimate),' ]'))
+}
+else{
+  set.seed(seed)
+  bootstrapCI(sample,5000,alpha,statistic = 'variance')
+}
+}
+
+generate_confidence_intervals_for_standard_deviation<-function(sample,alpha,normality = TRUE, seed = 2121){
+  if(normality){
+  print(paste("Standard deviation of provided sample under normality assumption: ", toString(sd(sample))))
+degrees.of.freedom <- length(sample) - 1
+t.score <- qchisq(p=alpha/2, df=degrees.of.freedom)
+t.score2 <- qchisq(p=1-alpha/2, df=degrees.of.freedom)
+sample.upperestimate <- sqrt(var(sample)*degrees.of.freedom/t.score)
+sample.lowerestimate <- sqrt(var(sample)*degrees.of.freedom/t.score2)
+print(paste("Confidence interval for sample: [ ",toString(sample.lowerestimate),' ',toString(sample.upperestimate),' ]'))
+}
+else{
+  set.seed(seed)
+  bootstrapCI(sample,5000,alpha,statistic = 'standard_deviation')
+}
+}
+```
+
+
+Tools to generate histograms:
+
+```{r}
+histogram_gen<-function(dane, discard_percentage, binns = 25, title, axis_desc, quant=1, bootstrap_mean, bootstrap_left, bootstrap_right){
+
+  data_frame(val = dane[dane < quantile(dane,quant)]) %>%ggplot(. , aes(val))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=binns
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+geom_vline(xintercept=bootstrap_mean, col="red")+
+geom_vline(xintercept=bootstrap_left, col="blue")+
+geom_vline(xintercept=bootstrap_right, col="blue")+
+ggtitle(title) +
+xlab(axis_desc)+
+theme(plot.title = element_text(hjust = 0.5))
+}
+```
+
+```{r}
+
+normality_testing <-function(dane){
+qqnorm(((dane-mean(dane))/sd(dane)))
+qqline(((dane-mean(dane))/sd(dane)))
+
+shapiro.test(dane)
+}
+```
+
+## Quaternary-Oxford and Oxford-Callovian
+
+Angular distances between Quaternary-Oxford and Oxford-Callovian.
+
+```{r}
+MQ_df<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+```
+
+
+Analysis of angular distance expressed in degree units - we filter the data set:
+
+```{r}
+Angular_distances_QO_OC <- select(MQ_df,AngularDistance_normals) %>% filter(.,AngularDistance_normals<10)
+histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Angular distances: Quaternary-Oxfordian vs. \n Oxfordian-Callovian', binns = 20, axis_desc = 'degrees', quant = 1, bootstrap_mean=1.684, bootstrap_left=1.482, bootstrap_right=1.891)
+```
+
+
+We investigate the mean. Note that the data is normally distributed:
+
+```{r}
+normality_testing(Angular_distances_QO_OC$AngularDistance_normals)
+```
+It is visible on the quantile plots and in the p-value in the Shapiro-Wilk test is smaller than $10^{-15}$.
+
+We generate the confidence interval using bootstrap methods that do not require normality assumptions:
+
+```{r}
+int_for_means<-generate_confidence_intervals_for_means(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+We calculated the 95% interval for the mean. The sample mean:
+
+
+```{r}
+mean(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+Confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=421)
+```
+
+The calculated 95% interval for the variance is 
+ [1.581,  3.194], so after removing outliers the tested data behave in a stable manner. The sample variance is:
+
+```{r}
+var(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+The confidence interval for the standard deviation:
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+The calculated sample standard deviation:
+
+```{r}
+sd(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+Analysis of transformed data using $x\mapsto ln(x+1)$.
+
+
+```{r}
+Angular_distances_QO_OC_log_transformed <- mutate(Angular_distances_QO_OC,logdist =log(AngularDistance_normals+1))$logdist
+histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'log(angular distance+1): Quaternary-Oxfordian vs.\n Oxfordian-Callovian', axis_desc ='log(degrees+1)' ,quant = 1 , binns=20,bootstrap_mean=0.867, bootstrap_left=0.806, bootstrap_right=0.930)
+```
+
+
+We investigate the mean. The transformed data are still not normal but the deviations from normality are smaller:
+
+```{r}
+qqnorm(((Angular_distances_QO_OC_log_transformed-mean(Angular_distances_QO_OC_log_transformed))/sd(Angular_distances_QO_OC_log_transformed)))
+qqline(((Angular_distances_QO_OC_log_transformed-mean(Angular_distances_QO_OC_log_transformed))/sd(Angular_distances_QO_OC_log_transformed)))
+
+shapiro.test(Angular_distances_QO_OC_log_transformed)
+```
+
+
+We conduct two analyses: with normality assumption (which does not hold) and without. We start with a confidence interval for the mean using bootstrap methods, which do not require normality:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+If we assume normality, the obtained confidence interval would be:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+
+The difference is negligible.
+
+Likewise, we can generate the confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=421)
+```
+
+The 95% confidence interval for the variance shows that the log-transformation reduces the dispersion of the variable. Variance of the log-transformed data is:
+
+```{r}
+var(Angular_distances_QO_OC_log_transformed)
+```
+
+
+The confidence interval determined using the (not true) normality assumption would be similar:
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+We generate the confidence interval for the st. dev. using bootstrap methods: 
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+
+The sample log-transformed st. dev.:
+```{r}
+sd(Angular_distances_QO_OC_log_transformed)
+```
+
+#Improved histograms
+
+```{r}
+h1<-histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Angular distances: Quaternary-Oxfordian vs. \n Oxfordian-Callovian', binns = 20, axis_desc = 'degrees', quant = 1, bootstrap_mean=1.684, bootstrap_left=1.482, bootstrap_right=1.891)
+```
+
+```{r}
+h1
+```
+
+```{r}
+h2<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'log(angular distances+1): Quaternary-Oxfordian vs. \n Oxfordian-Callovian', axis_desc = 'log(degrees+1)' , quant = 1 , binns=20, bootstrap_mean=0.867, bootstrap_left=0.806, bootstrap_right=0.930)
+```
+
+```{r}
+h2
+```
+
+
+## Quaternary-Oxford i Bajocian-Aalenian
+
+Angular distance between contacts: Quaternary-Oxford and Bajocian-Aalenian.
+
+```{r}
+MQ_dft<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+Analysis of angular distance expressed in degree units - we filter the data set:
+
+
+```{r}
+Angular_distances_QO_OC <- select(MQ_dft,AngularDistance_normals) %>% filter(.,AngularDistance_normals<15)
+histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Angular distances: Quaternary-Oxfordian vs.\n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 30, axis_desc = 'degrees',quant = 1,bootstrap_mean=2.165, bootstrap_left=1.942, bootstrap_right=2.488)
+```
+
+
+We first investigate the mean. The data are not normal:
+
+```{r}
+normality_testing(Angular_distances_QO_OC$AngularDistance_normals)
+```
+It is visible on the quantile plots and in the p-value in the Shapiro-Wilk test is smaller than $10^{-15}$.
+
+We generate the confidence interval using bootstrap methods that do not require normality assumptions:
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+We calculated the 95% confidence interval for the mean. The sample mean is:
+```{r}
+mean(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+
+Likewise, we can calculate the confidence interval for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=421)
+```
+
+
+We obtained the 95% confidence interval for the variance. The sample variance is:
+```{r}
+var(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+
+We can determine the confidence interval for the st. dev.:
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+The calculated sample st. dev.:
+```{r}
+sd(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+Analysis of transformed data using $x\mapsto ln(x+1)$.
+
+
+```{r}
+Angular_distances_QO_OC_log_transformed <- mutate(Angular_distances_QO_OC,logdist =log(AngularDistance_normals+1))$logdist
+histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'log(angular distances+1): Quaternary-Oxfordian vs. \n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc = 'log(degrees+1)' ,quant = 1 , binns=20,bootstrap_mean=0.967, bootstrap_left=0.894, bootstrap_right=1.041)
+```
+
+
+First, we investigate the mean. The transformed data are not normal, but it has improved a bit.
+```{r}
+normality_testing(Angular_distances_QO_OC_log_transformed)
+```
+Analysis without normality assumption.
+
+We generate the confidence interval for the mean using bootstrap methods that do not require normality assumptions:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+If we assume normality, the confidence interval would almost not differ:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+The difference is negligible.
+
+Likewise, we can determine the confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=421)
+```
+
+The 95% confidence interval for the variance shows that the log-transformation reduces the dispersion of the variable. 
+Unfortunately, it is difficult to transform this interval by an inverse transformation. The variance of the log-transformed data is:
+
+```{r}
+var(Angular_distances_QO_OC_log_transformed)
+```
+
+The confidence interval determined using (not true) normality assumption would be neglibly more precise:
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+We generate confidence intervals for the st. dev. using bootstrap methods:
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+The sample st. dev. of log-transformed data is:
+```{r}
+sd(Angular_distances_QO_OC_log_transformed)
+```
+#Improved histograms
+
+```{r}
+h3<-histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Angular distances: Quaternary-Oxfordian vs. \n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 30, axis_desc = 'degrees', quant = 1, bootstrap_mean=2.165, bootstrap_left=1.842, bootstrap_right=2.488)
+```
+
+```{r}
+h3
+```
+
+
+```{r}
+h4<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'log(angular distance+1): Quaternary-Oxfordian vs. \n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc = 'log(degrees+1)' ,quant = 1 , binns=20, bootstrap_mean=0.967, bootstrap_left=0.894, bootstrap_right=1.041)
+```
+
+```{r}
+h4
+```
+
+## Oxford-Callovian and Bajocian-Aalenian
+
+We will analyze angular distances between contacts: Oxford-Callovian and Bajocian-Aalenian.
+
+```{r}
+MQ_dft<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+Analysis of angular distance expressed in degree units - we filter the data set:
+
+
+```{r}
+Angular_distances_QO_OC <- select(MQ_dft,AngularDistance_normals) %>% filter(.,AngularDistance_normals<15)
+histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Angular distances: Oxfordian-Callovian vs. \n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = 'degrees' ,quant = 1,bootstrap_mean=1.167, bootstrap_left=0.951, bootstrap_right=1.383)
+```
+
+
+First, we investigate the mean. The data are not normal:
+
+```{r}
+normality_testing(Angular_distances_QO_OC$AngularDistance_normals)
+```
+It is visible on the quantile plots and in the p-value in the Shapiro-Wilk test is smaller than $10^{-15}$.
+
+We generate the confidence interval using bootstrap methods that do not require normality assumptions:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+We calculated the 95% interval for the mean. The sample mean is:
+```{r}
+mean(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+
+Likewise, we can determine confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=421)
+```
+
+
+We obtained the 95% confidence interval for the variance. The sample variance is:
+
+```{r}
+var(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+We can also determine the confidence interval for the st. dev.:
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+The calculated sample st. dev.:
+```{r}
+sd(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+Analysis of transformed data using $x\mapsto ln(x+1)$.
+
+
+
+```{r}
+Angular_distances_QO_OC_log_transformed <- mutate(Angular_distances_QO_OC,logdist =log(AngularDistance_normals+1))$logdist
+histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'log(angular distance+1): Oxfordian-Callovian vs. \n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc = 'log(degrees+1)',quant = 1 , binns=20,bootstrap_mean=0.625, bootstrap_left=0.563, bootstrap_right=0.687)
+```
+
+
+
+First, we investigate the mean. The transformed data are still not normal.
+
+```{r}
+normality_testing(Angular_distances_QO_OC_log_transformed)
+```
+Analysis without normality assumption.
+We generate the confidence interval for the mean using bootstrap methods that do not require normality assumptions:
+
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+If we assume normality, the obtained confidence interval would almost not differ:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+The difference is negligible.
+
+
+
+Likewise, we can determine the confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=421)
+```
+
+
+The 95% confidence interval for the variance shows that the log-transformation reduces the dispersion of the variable. 
+Unfortunately, it is difficult to transform this interval by an inverse transformation. Applying the function  $x\mapsto e^{x}-1$ will generate a meaningless confidence interval:
+```{r}
+a<-c(0.162148623016129, 0.292815497570269)
+c(exp(a[1])-1, exp(a[2])-1)
+```
+
+
+The variance of log-transformed data:
+```{r}
+var(Angular_distances_QO_OC_log_transformed)
+```
+
+The confidence interval determined using (not true) normality assumption would be more precise:
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+Using bootstrap methods, we generate confidence intervals for the st. dev.:
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+
+The standard deviation of log-transformed data:
+```{r}
+sd(Angular_distances_QO_OC_log_transformed)
+```
+#Improved histograms
+
+```{r}
+h5<-histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Angular distances: Oxfordian-Callovian vs. \n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = 'degrees', quant = 1, bootstrap_mean=1.167, bootstrap_left=0.951, bootstrap_right=1.383)
+```
+
+```{r}
+h5
+```
+
+```{r}
+h6<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'log(angular distance+1): Oxfordian-Callovian vs. \n Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc = 'log(degrees+1)' ,quant = 1 , binns=20, bootstrap_mean=0.625, bootstrap_left=0.563, bootstrap_right=0.687)
+```
+
+```{r}
+h6
+```
+
+
+## Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+
+Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+
+```{r}
+difmap1a<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+Analysis of angular distance expressed in degree units - we filter the data set:
+
+
+```{r}
+Angular_distances_QO_OC <- (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals)) %>% filter(.,abs(AngularDistance_normals)<15)
+histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Differences in angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian minus Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = 'angular difference',quant = 1,bootstrap_mean=-0.123, bootstrap_left=-0.337, bootstrap_right=0.094)
+```
+
+
+
+First, we investigate the mean. The data are not normal:
+
+```{r}
+normality_testing(Angular_distances_QO_OC$AngularDistance_normals)
+```
+It is visible on the quantile plots and in the p-value in the Shapiro-Wilk test is smaller than $10^{-15}$.
+
+We generate the confidence interval using bootstrap methods that do not require normality assumptions:
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+
+We calculated the 95% interval for the mean. The sample mean is:
+```{r}
+mean(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+
+
+Likewise, we can determine the confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+
+The sample variance is:
+
+```{r}
+var(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+We determine the confidence interval for the st. dev.:
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+The calculated sample st. dev.:
+```{r}
+sd(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+Analysis of transformed data using $x\mapsto ln(x+1)$.
+
+In case of difference, the difference of logarithms is the logarithm of a quotient.
+
+
+```{r}
+difmap1a$Angdistnormdiff<-  (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals))$AngularDistance_normals
+```
+```{r}
+difmap1b$Angdistnormdiff<-  (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals))$AngularDistance_normals
+```
+```{r}
+Angular_distances_QO_OC_log_transformed<- (select(filter(difmap1a,abs(Angdistnormdiff)<15),AngularDistance_normals) %>% mutate(.,logdist = log(1+AngularDistance_normals)))$logdist - (select(filter(difmap1b,abs(Angdistnormdiff)<15),AngularDistance_normals) %>% mutate(.,logdist = log(1+AngularDistance_normals)))$logdist
+```
+
+```{r}
+histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'Differences in log angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian vs. \n Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc = 'log angular difference' ,quant = 1 , binns=20,bootstrap_mean=-0.038, bootstrap_left=-0.078, bootstrap_right=0.003)
+```
+
+
+We investigate the mean. The transformed data are more similar to normality but the hypothesis about normality cannot be considered.
+
+```{r}
+normality_testing(Angular_distances_QO_OC_log_transformed)
+```
+
+Analysis without normality assumption. We generate the confidence interval for the mean:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+Likewise, we can determine the confidence interval for the variance and st. dev.:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=421)
+```
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+#Improved histograms
+
+```{r}
+h7<-histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Differences in angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian minus \n Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = 'angular difference',quant = 1, bootstrap_mean=-0.123, bootstrap_left=-0.337, bootstrap_right=0.094)
+
+```
+
+```{r}
+h7
+```
+
+```{r}
+h8<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'Differences in log angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian minus \n Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc ='log angular difference' ,quant = 1 , binns=20, bootstrap_mean=-0.038, bootstrap_left=-0.078, bootstrap_right=0.003)
+```
+
+```{r}
+h8
+```
+
+
+## Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+
+Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+
+```{r}
+difmap1a<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+Analysis of angular distance expressed in degree units - we filter the data set:
+
+
+```{r}
+Angular_distances_QO_OC <- (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals)) %>% filter(.,abs(AngularDistance_normals)<15)
+histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Differences in angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian vs. \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = 'angular difference' ,quant = 1,bootstrap_mean=1.031, bootstrap_left=0.675, bootstrap_right=1.381)
+```
+
+
+
+First, we investigate the mean. The data are not normal:
+
+```{r}
+normality_testing(Angular_distances_QO_OC$AngularDistance_normals)
+```
+It is visible on the quantile plots and in the p-value in the Shapiro-Wilk test is smaller than $10^{-15}$.
+
+We generate the confidence interval using bootstrap methods that do not require normality assumptions:
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+
+We obtained the 95% interval for the mean. The sample mean is:
+```{r}
+mean(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+
+
+We can determine the confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=421)
+```
+
+
+
+We obtained the 95% interval for the variance. The sample variance is:
+
+```{r}
+var(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+
+The confidence interval for the st. dev:
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+Obliczone odchylenie standardowe z próbki:
+```{r}
+sd(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+Analysis of transformed data using $x\mapsto ln(x+1)$.
+
+
+In case of difference, the difference of logarithms is the logarithm of a quotient.
+
+
+```{r}
+difmap1a$Angdistnormdiff<-  (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals))$AngularDistance_normals
+```
+
+```{r}
+difmap1b$Angdistnormdiff<-  (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals))$AngularDistance_normals
+```
+```{r}
+Angular_distances_QO_OC_log_transformed<- (select(filter(difmap1a,abs(Angdistnormdiff)<15),AngularDistance_normals) %>% mutate(.,logdist = log(1+AngularDistance_normals)))$logdist - (select(filter(difmap1b,abs(Angdistnormdiff)<15),AngularDistance_normals) %>% mutate(.,logdist = log(1+AngularDistance_normals)))$logdist
+```
+
+```{r}
+histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'Differences in log angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian vs. \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc ='log angular difference' ,quant = 1 , binns=20,bootstrap_mean=0.311, bootstrap_left=0.238, bootstrap_right=0.383)
+```
+
+
+
+First, we investigate the mean. The transformed data are similar to normal data. We will do analysis using the assumption of normality and without.
+
+```{r}
+qqnorm(((Angular_distances_QO_OC_log_transformed-mean(Angular_distances_QO_OC_log_transformed))/sd(Angular_distances_QO_OC_log_transformed)))
+qqline(((Angular_distances_QO_OC_log_transformed-mean(Angular_distances_QO_OC_log_transformed))/sd(Angular_distances_QO_OC_log_transformed)))
+
+shapiro.test(Angular_distances_QO_OC_log_transformed)
+```
+With normality assumption. We generate the confidence interval for the mean: 
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+
+Without this assumption using bootstrap methods we obtain the following intervals:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2033)
+```
+
+
+The confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=421)
+```
+
+Confidence interval for the st. dev. determined using the normality assumption
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+
+
+Analogous calculations for the variance and standard deviation without normality assumptions are presented below:
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=421)
+```
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+#Improved histograms
+
+```{r}
+h9<- histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Differences in angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = 'angular difference',quant = 1, bootstrap_mean=1.031, bootstrap_left=0.675, bootstrap_right=1.381)
+```
+
+```{r}
+h9
+```
+
+```{r}
+h10<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'Differences in log angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc = 'log angular difference' ,quant = 1 , binns=20, bootstrap_mean=0.311, bootstrap_left=0.238, bootstrap_right=0.383)
+```
+
+```{r}
+h10
+```
+
+## Quaternary/Oxford-Bajocian/Aalenian minus Oxford/Callovian-Bajocian/Aalenian
+
+Arithmetic differences: Quaternary/Oxford-Bajocian/Aalenian minus Oxford/Callovian-Bajocian/Aalenian
+
+```{r}
+getwd()
+```
+
+```{r}
+difmap1a<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+Analysis of angular distance expressed in degree units - we filter the data set:
+
+
+
+
+```{r}
+Angular_distances_QO_OC <- (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals)) %>% filter(.,abs(AngularDistance_normals)<15)
+histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Differences in angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian vs. \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = 'angular difference',quant = 1,bootstrap_mean=1.008, bootstrap_left=0.707, bootstrap_right=1.308)
+```
+
+
+
+First, we investigate the mean. The data are not normal:
+
+```{r}
+normality_testing(Angular_distances_QO_OC$AngularDistance_normals)
+```
+It is visible on the quantile plots and in the p-value in the Shapiro-Wilk test is smaller than $10^{-15}$.
+
+We generate the confidence interval using bootstrap methods that do not require normality assumptions:
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+The sample mean:
+ 
+```{r}
+mean(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+
+Confidence interval for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=421)
+```
+
+The sample variance:
+
+```{r}
+var(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+We can determine the confidence interval for the standard deviation:
+
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC$AngularDistance_normals,0.05,normality =FALSE, seed=2021)
+```
+
+The calculated sample standard deviation:
+```{r}
+sd(Angular_distances_QO_OC$AngularDistance_normals)
+```
+
+Analysis of transformed data using $x\mapsto ln(x+1)$.
+
+
+
+
+In case of difference, the difference of logarithms is the logarithm of a quotient.
+
+```{r}
+difmap1a$Angdistnormdiff<-  (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals))$AngularDistance_normals
+```
+```{r}
+difmap1b$Angdistnormdiff<-  (select(difmap1a,AngularDistance_normals)-select(difmap1b,AngularDistance_normals))$AngularDistance_normals
+```
+```{r}
+Angular_distances_QO_OC_log_transformed<- (select(filter(difmap1a,abs(Angdistnormdiff)<15),AngularDistance_normals) %>% mutate(.,logdist = log(1+AngularDistance_normals)))$logdist - (select(filter(difmap1b,abs(Angdistnormdiff)<15),AngularDistance_normals) %>% mutate(.,logdist = log(1+AngularDistance_normals)))$logdist
+```
+
+```{r}
+histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'Differences in log angular distances: \n Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc ='log angular difference' ,quant = 1 , binns=20, bootstrap_mean=0.349, bootstrap_left=0.284, bootstrap_right=0.414)
+```
+
+First, we investigate the mean. The transformed data are similar to normal data. We will do analysis using the assumption of normality and without.
+
+```{r}
+qqnorm(((Angular_distances_QO_OC_log_transformed-mean(Angular_distances_QO_OC_log_transformed))/sd(Angular_distances_QO_OC_log_transformed)))
+qqline(((Angular_distances_QO_OC_log_transformed-mean(Angular_distances_QO_OC_log_transformed))/sd(Angular_distances_QO_OC_log_transformed)))
+
+shapiro.test(Angular_distances_QO_OC_log_transformed)
+```
+
+We will start with assumption of normality. We generate the confidence interval for the mean:
+
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+Confidence intervals for the variance:
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=421)
+```
+
+The confidence interval for the standard deviation estimated using the normality assumption:
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =TRUE, seed=2021)
+```
+
+
+Analogous calculations without normality assumptions do not deviate from their counterparts that assume normality:
+```{r}
+generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+
+
+
+
+```{r}
+generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=421)
+```
+```{r}
+generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
+```
+
+
+#Improved histograms
+
+```{r}
+h11<- histogram_gen(Angular_distances_QO_OC$AngularDistance_normals, title = 'Differences in angular distances: \n Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', binns = 20, axis_desc = ' angular difference',quant = 1, bootstrap_mean=1.008, bootstrap_left=0.707, bootstrap_right=1.308)
+```
+
+```{r}
+h11
+```
+
+```{r}
+h12<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'Differences in log angular distances: \n Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds', axis_desc = 'log angular difference' ,quant = 1 , binns=20, bootstrap_mean=0.349, bootstrap_left=0.284, bootstrap_right=0.414)
+```
+
+```{r}
+h12
+```
+
+
+#Summary histograms START
+
+```{r}
+summary_histograms<- ggarrange(h1, h2, h3, h4, h5, h6,  ncol=2, nrow=3, labels=c("A", "B", "C", "D", "E", "F"), common.legend = FALSE)
+```
+
+```{r}
+summary_histograms
+```
+
+```{r}
+tiff("summary_histograms.tif", units="in", width=10, height=7, res=300)
+summary_histograms
+dev.off()
+```
+#Summary histograms STOP
+
+#Summary histograms DIFFERENCE START
+
+```{r}
+summary_histograms_diff<- ggarrange(h7, h8, h9, h10, h11, h12, ncol=2, nrow=3, labels=c("A", "B", "C", "D", "E", "F"), common.legend = FALSE)
+```
+
+```{r}
+summary_histograms_diff
+```
+
+```{r}
+tiff("summary_histograms_diff.tif", units="in", width=10, height=7, res=300)
+summary_histograms_diff
+dev.off()
+```
+#Summary histograms DIFFERENCE STOP

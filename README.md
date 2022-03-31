@@ -62,10 +62,14 @@ C++
 
 GNU General Public License v3.0.
 
-# SurfaceCompare. Move to R - part 1.
+# SurfaceCompare. Move to R - part 1 - Statistical analysis.
 
 Use the Statistical_analysis_angular_distances file.
 
-# SurfaceCompare. Move to R - part 2.
+# SurfaceCompare. Move to R - part 2 - Spatial analysis.
 
 Use the Spatial_analysis_angular_distances file.
+
+# SurfaceCompare. Move to R - part 3 - Grid map.
+
+Use the gridmap file.

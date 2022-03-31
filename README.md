@@ -1,4 +1,4 @@
-# SurfaceCompare. Introduction.
+# SurfaceCompare. Start with a C++ code.
 
 Measurements of angular distances between geological interfaces.
 
@@ -60,3 +60,11 @@ C++
 ### License
 
 GNU General Public License v3.0.
+
+# SurfaceCompare. Move to R - part 1.
+
+Use the Statistical_analysis_angular_distances file.
+
+# SurfaceCompare. Move to R - part 2.
+
+

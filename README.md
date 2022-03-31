@@ -16,6 +16,13 @@ The explanation of the structure of the file is given below:
 
 ![input_file_explanation](https://user-images.githubusercontent.com/28152295/161118209-17dc606a-e266-4c82-b4e1-cbeca6f4973c.png)
 
+## Processing
+
+The program looks as follows. You would need to specify the number of horizons and the path.
+
+![processing](https://user-images.githubusercontent.com/28152295/161123010-b3f50a13-f1bb-4d2b-9c96-4c537a456ea6.png)
+
+
 ## Output
 
 If you have 4 input horizons, you will get 6 output files. They will have extensions according to the indices of the taken horizons. In this case, these six files will have the following extensions: _01, _02, _03, _12, _13, and _23.

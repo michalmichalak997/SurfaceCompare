@@ -1,19 +1,42 @@
-# SurfaceCompare
+# SurfaceCompare. Introduction.
 
-Comparing the orientation of surfaces
-The application SurfaceCompare aims to compare the orientation of geological surfaces. 
+Measurements of angular distances between geological interfaces.
 
-Developer: Michał Michalak (mimichalak@us.edu.pl), Department of Applied Geology, Faculty of Earth Sciences, University of Silesia, Poland, Będzińska 60, 41-205 Sosnowiec.
+Developer: Michał Michalak (michalmichalak@us.edu.pl)
 
-1. System requirements
+Affiliations: 
+1) Faculty of Natural Sciences, University of Silesia in Katowice, Poland, Będzińska 60, 41-205 Sosnowiec.
+2) Faculty of Geology, Geophysics and Environmental Protection, Poland, aleja Adama Mickiewicza 30, 30-059 Kraków.
 
-a) System required: Windows 10 Pro 64-bit, Windows 8.1 64-bit. 
+## Input
 
-b) Hardware required: As specified in the Windows 10 Pro or Windows 8.1 requirements. 
+![input_file](https://user-images.githubusercontent.com/28152295/161118052-c1a3eaf4-55e8-4f92-858a-fb34fb64dff1.png)
 
-c) Versions the software has been tested on: Windows 10 Pro 64-bit, Windows 8.1 64-bit.
+The explanation of the structure of the file is given below:
 
-d) Software required (version numbers can be different, those used in our work are given): 
+![input_file_explanation](https://user-images.githubusercontent.com/28152295/161118209-17dc606a-e266-4c82-b4e1-cbeca6f4973c.png)
+
+## Output
+
+If you have 4 input horizons, you will get 6 output files. They will have extensions according to the indices of the taken horizons. In this case, these six files will have the following extensions: _01, _02, _03, _12, _13, and _23.
+
+The file is very wide, so we do not attach a screenshot.
+
+You should delete the first line in your file that includes information about the taken horizons. For example, in the file with extension _01 you should delete the first line "Index of the first surface:0Index of the first surface:1".
+
+## System requirements
+
+### System required
+
+Windows 10 Home, 64-bit, processor x64.
+
+### Versions the software has been tested on
+
+Windows 10 Home, 64-bit, processor x64.
+
+### Software required 
+
+Vversion numbers can be different, those used in our work are given: 
 
   -Microsoft Visual Studio 2017, 
   
@@ -21,58 +44,12 @@ d) Software required (version numbers can be different, those used in our work a
   
   -Boost library (ver. 1.59), 
   
-  -Microsoft Visual C++ 2017 Redistributable, 
+  -Microsoft Visual C++ 2017 Redistributable
   
-  -libgmp-10.dll, libmpfr-4.dll (attached). 
-  
-e) Program language: C++. 
+### Program language
 
-f) Program size: 1.1 MB. 
+C++
 
-g) License: GNU General Public License v3.0.
+### License
 
-2. Installation guide
-
-The below instructions are applicable to run the standalone version.
-
-a) Download SurfaceCompare.exe along with libgmp-10.dll and libmpfr-4.dll. 
-
-b) Put all three above files in the same directory.
-
-c) Run SurfaceCompare.exe
-
-3. Demo and Instructions for use
-
-a) To test the program, please download TestDataBottom.txt and TestDataTerrain.txt. For convenience put them
-in the same directory. Having run the SurfaceCompare.exe, you should specify the paths of these input files.
-For instance if you put them in C:\CGAL\examples, you should type in: C:\CGAL\examples\TestDataBottom.txt and
-C:\CGAL\examples\TestDataTerrain.txt. You should also specify the path of the output file e.g. C:\CGAL\examples\TestResultsBottomTerrain.txt
-
-b) The expected output is as follows:
-
-X_C;Y_C;Distance
-
-920580.573333;254324.183333;1.43308
-
-920834.660000;253472.150000;1.29936
-
-920875.600000;253202.870000;0.856687
-
-920680.523333;253888.936667;1.41487
-
-920979.283333;253888.296667;1.8032
-
-920879.333333;254323.543333;1.37324
-
-921159.243333;253340.333333;1.61983
-
-921231.190000;253582.310000;1.76064
-
-921286.213333;253160.110000;1.61581
-
-921216.716667;252929.303333;1.46042
-
-921340.186667;252801.873333;1.50106
-
-
-c) The expected run time for demo on a "normal" desktop computer should be no longer than five seconds.
+GNU General Public License v3.0.

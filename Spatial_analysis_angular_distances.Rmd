@@ -1,0 +1,5025 @@
+---
+title: "Spatial_analysis_Angular_distances"
+author: "Michał Michalak"
+date: "31.03.2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd<-"path"
+```
+
+
+```{r}
+library(cowplot)
+library(ggpubr)
+library(automap)
+library(automap)
+library(ggmap)
+library(sp)
+library(gstat)
+library(scales)
+library(akima)
+library(OpenStreetMap)
+library(interp)
+library(reshape2)
+library(contoureR)
+library(plotly)
+library(fields)
+library(stars)
+library(gstat)
+library(colorspace)
+library(sf)
+library(RColorBrewer)
+library(grDevices)
+library(deldir)
+library(dismo)
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+library(gridExtra)
+library(lattice)
+```
+
+```{r}
+teren<- terrain.colors(10)
+color.palette=colorRampPalette(c("blue","yellow","red"))
+pal<-color.palette(100)
+```
+
+```{r}
+jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+jet<-jet.colors(100)
+```
+
+```{r}
+getwd()
+```
+
+```{r}
+surfaces<- read.csv("boreholes.csv", header=TRUE, sep=";", dec=".")
+```
+
+```{r}
+colnames(surfaces)
+```
+
+#Exploratory analysis for single surfaces START.
+```{r}
+ggplot(surfaces,  aes(bottom_clays))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=25
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Elevation of Quaternary/Oxfordian contact") +
+xlab("elevation")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+fldq <- with(surfaces, interp(x = Y, y = X, z = bottom_q, linear=T))
+
+```
+```{r}
+filled.contour(x = fldq$x,
+y = fldq$y,
+z = fldq$z,
+color.palette = colorRampPalette(teren),
+xlab = "X",
+ylab = "Y",
+main = "Interpolation of Quaternary/Oxfordian contact",
+key.title = title(main = "Elevation", cex.main = 1))
+```
+
+
+```{r}
+tiff("Interpolation of Quaternary - Oxfordian contact.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldq$x,
+y = fldq$y,
+z = fldq$z,
+color.palette = colorRampPalette(teren),
+xlab = "X",
+ylab = "Y",
+main = "Interpolation of Quaternary/Oxfordian contact",
+key.title = title(main = "Elevation", cex.main = 1))
+dev.off()
+```
+
+
+```{r}
+ggplot(surfaces, aes(x=Y, y=X, col=bottom_q))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Elevation of Quaternary/Oxfordian contact")+
+theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+```{r}
+fldm <- with(surfaces, interp(x = Y, y = X, z = bottom_o, linear=T))
+
+```
+
+```{r}
+class(jet.colors)
+```
+
+```{r}
+filled.contour(x = fldm$x,
+y = fldm$y,
+z = fldm$z,
+color.palette = colorRampPalette(teren),
+xlab = "X",
+ylab = "Y",
+main = "Interpolation of Oxfordian/Callovian contact",
+key.title = title(main = "Elevation", cex.main = 1))
+```
+
+```{r}
+tiff("Interpolation of Oxfordian-Callovian contact.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldm$x,
+y = fldm$y,
+z = fldm$z,
+color.palette = colorRampPalette(teren),
+xlab = "X",
+ylab = "Y",
+main = "Interpolation of Oxfordian/Callovian contact",
+key.title = title(main = "Elevation", cex.main = 1))
+dev.off()
+```
+
+```{r}
+ggplot(surfaces, aes(x=Y, y=X, col=bottom_o))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Elevation of Oxfordian/Callovian contact")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+fldc <- with(surfaces, interp(x = Y, y = X, z = Z, linear=T))
+```
+
+
+```{r}
+filled.contour(x = fldc$x,
+y = fldc$y,
+z = fldc$z,
+color.palette = colorRampPalette(teren),
+xlab = "X",
+ylab = "Y",
+main = "Interpolation of the terrain surface",
+key.title = title(main = "Elevation", cex.main = 1))
+```
+
+```{r}
+tiff("Interpolation of the terrain surface.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldc$x,
+y = fldc$y,
+z = fldc$z,
+color.palette = colorRampPalette(teren),
+xlab = "X",
+ylab = "Y",
+main = "Interpolation of the terrain surface",
+key.title = title(main = "Elevation", cex.main = 1))
+dev.off()
+```
+
+
+
+
+```{r}
+fldc <- with(surfaces, interp(x = Y, y = X, z = bottom_clays, linear=T))
+```
+
+
+```{r}
+filled.contour(x = fldc$x,
+y = fldc$y,
+z = fldc$z,
+color.palette = colorRampPalette(teren),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Interpolation of Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds contact",
+key.title = title(main = "Elevation", cex.main = 1))
+```
+
+```{r}
+tiff("Interpolation of Częstochowa Ore-Bearing Clay Fm - Kościeliska Beds contact.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldc$x,
+y = fldc$y,
+z = fldc$z,
+color.palette = colorRampPalette(teren),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Interpolation of Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds contact",
+key.title = title(main = "Elevation", cex.main = 1))
+dev.off()
+```
+
+```{r}
+ggplot(surfaces, aes(x=Y, y=X, col=bottom_clays))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Elevation of Częstochowa Ore-Bearing Clay Fm/ \n Kościeliska Beds contact")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Exploratory analysis for single surfaces STOP
+
+#Exploratory analysis for angular distances START.
+```{r}
+MQ_df<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+nrow(MQ_df)
+```
+
+```{r}
+colnames(MQ_df)
+```
+
+
+
+```{r}
+ggplot(MQ_df, aes(x=Y1_C, y=X1_C, col=AngularDistance_normals))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+colnames(MQ_df)
+```
+
+```{r}
+ggplot(MQ_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=25
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(MQ_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=25
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log (angular distance+1) between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian") +
+xlab("log (x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Exploratory analysis for angular distances STOP. 
+
+#Filtering START. 
+```{r}
+MQ_df<- dplyr::filter(MQ_df, log(AngularDistance_normals+1)<2)
+```
+#Filtering STOP. 
+
+#Checking histograms after Filtering START. 
+```{r}
+ggplot(MQ_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=25
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(MQ_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log (angular distance+1) between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian") +
+xlab("log (x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Checking histograms after Filtering STOP. 
+
+
+
+#GIVING SPATIAL STRUCTURE START.
+
+```{r}
+MQ_df_sp <- st_as_sf(MQ_df, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+head(MQ_df_sp)
+```
+
+#GIVING SPATIAL STRUCTURE STOP.
+
+#DETERMINISTIC MODELS START. 
+```{r}
+fldlog <- with(MQ_df, interp(x = Y1_C, y = X1_C, z = log(AngularDistance_normals+1), linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian",
+key.title = title(main = "log(x+1)", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_quaternary_oxford.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian",
+key.title = title(main = "log(x+1)", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP. 
+
+#THICKNESS START. 
+
+```{r}
+surfaces<- read.csv("boreholes.csv", header=TRUE, sep=";", dec=".")
+```
+
+```{r}
+fldlog <- with(surfaces, interp(x = Y, y = X, z = MQ, linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Isopach map of Quaternary sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_quaternary_thickness.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Isopach map of Quaternary sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+dev.off()
+```
+#THICKNESS STOP. 
+
+#LAGGED SCATTERPLOT THICKNESS  START. 
+```{r}
+surfaces_sp <- st_as_sf(surfaces, coords = c("Y", "X"))
+```
+
+```{r}
+class(surfaces_sp)
+```
+
+```{r}
+hscatMQthickness<-hscat(MQ~1, data=surfaces_sp, breaks=seq(0, 3000, by=600))
+```
+
+```{r}
+hscatMQthickness
+```
+
+```{r}
+tiff("hscat_quaternary_thickness.tif", units="in", width=10, height=7, res=300)
+hscatMQthickness
+dev.off()
+```
+#LAGGED SCATTERPLOT THICKNESS STOP. 
+
+#VARIOGRAM THICKNESS START. 
+```{r}
+coordinates(surfaces)=~Y+X
+```
+
+```{r}
+variogram_athickness= autofitVariogram(MQ~1,
+#model="Exp",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(variogram_athickness)
+```
+
+```{r}
+tiff("vario_quaternary_thickness.tif", units="in", width=10, height=7, res=300)
+plot(variogram_athickness)
+dev.off()
+```
+#VARIOGRAM THICKNESS STOP. 
+
+#KRIGING THICKNESS START. 
+```{r}
+wynikMQthickness=autoKrige(MQ~1,
+# model="Sph",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+wynikMQthickness = as.data.frame(wynikMQthickness$krige_output)
+```
+
+```{r}
+kriging_quaternary_thickness<-ggplot(wynikMQthickness, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Thickness", colours = jet )+
+xlab("X")+
+ylab("Y")+
+ggtitle("Isopach map of Quaternary sediments")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_quaternary_thickness
+```
+
+```{r}
+tiff("kriging_quaternary_thickness.tif", units="in", width=10, height=7, res=300)
+kriging_quaternary_thickness
+dev.off()
+```
+#KRIGING THICKNESS STOP.
+
+#LAGGED SCATTERPLOT  START. 
+```{r}
+MQ_df_sp <- st_as_sf(MQ_df, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(MQ_df_sp)
+```
+
+```{r}
+hscatMQ<-hscat(log(AngularDistance_normals+1)~1, data=MQ_df_sp, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+hscatMQ
+```
+
+```{r}
+tiff("hscat_quaternary_oxford.tif", units="in", width=10, height=7, res=300)
+hscatMQ
+dev.off()
+```
+#LAGGED SCATTERPLOT  STOP. 
+
+#VARIOGRAM START. 
+```{r}
+coordinates(MQ_df)=~Y1_C+X1_C
+```
+
+```{r}
+variogram_a= autofitVariogram(log(AngularDistance_normals+1)~1,
+#model="Exp",
+input_data= MQ_df,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(variogram_a)
+```
+
+```{r}
+tiff("vario_quaternary_oxford.tif", units="in", width=10, height=7, res=300)
+plot(variogram_a)
+dev.off()
+```
+#VARIOGRAM  STOP. 
+
+#KRIGING START. 
+```{r}
+wynikMQ=autoKrige(log(AngularDistance_normals+1)~1,
+# model="Sph",
+input_data= MQ_df,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikMQ)
+```
+
+```{r}
+wynikMQ = as.data.frame(wynikMQ$krige_output)
+```
+
+```{r}
+kriging_quaternary_oxford<-ggplot(wynikMQ, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("log(x+1)", colours = jet )+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Oxfordian/Callovian")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_quaternary_oxford
+```
+
+```{r}
+tiff("kriging_quaternary_oxford.tif", units="in", width=10, height=7, res=300)
+kriging_quaternary_oxford
+dev.off()
+```
+#KRIGING  STOP.
+
+#Exploratory analysis for angular distances START
+```{r}
+MCL_df<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+nrow(MCL_df)
+```
+
+```{r}
+ggplot(MCL_df, aes(x=Y1_C, y=X1_C, col=AngularDistance_normals))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Angular distance between contacts \n Oxfordian/Callovian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+colnames(MCL_df)
+```
+
+```{r}
+ggplot(MCL_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Oxfordian/Callovian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(MCL_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Exploratory analysis for angular distances STOP
+
+
+#Filtering START
+
+```{r}
+MCL_df<- dplyr::filter(MCL_df, log(AngularDistance_normals+1)<1.5)
+```
+
+#Filtering STOP
+
+#Checking histograms after filtering START
+
+```{r}
+ggplot(MCL_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Oxfordian/Callovian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(MCL_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Checking histograms after filtering STOP
+
+
+
+
+#GIVING SPATIAL STRUCTURE START
+
+```{r}
+MCL_df_sp <- st_as_sf(MCL_df, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+head(MCL_df_sp)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+
+#DETERMINISTIC MODELS START
+
+```{r}
+fldlog <- with(MCL_df, interp(x = Y1_C, y = X1_C, z = log(AngularDistance_normals+1), linear=T))
+```
+
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_oxford_aalen.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Oxfordian/Callovian vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+
+#THICKNESS START. 
+```{r}
+surfaces<- read.csv("boreholes.csv", header=TRUE, sep=";", dec=".")
+```
+
+```{r}
+fldlog <- with(surfaces, interp(x = Y, y = X, z = MM, linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X",
+ylab = "Y",
+main = "Isopach map of Oxfordian sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_oxford_thickness.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Isopach map of Oxfordian sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+dev.off()
+```
+#THICKNESS STOP. 
+
+#LAGGED SCATTERPLOT THICKNESS  START. 
+```{r}
+surfaces_sp <- st_as_sf(surfaces, coords = c("Y", "X"))
+```
+
+```{r}
+class(surfaces_sp)
+```
+
+```{r}
+hscatMMthickness<-hscat(MM~1, data=surfaces_sp, breaks=seq(0, 3000, by=600))
+```
+
+```{r}
+hscatMMthickness
+```
+
+```{r}
+tiff("hscat_oxford_thickness.tif", units="in", width=10, height=7, res=300)
+hscatMMthickness
+dev.off()
+```
+#LAGGED SCATTERPLOT THICKNESS STOP. 
+
+#VARIOGRAM THICKNESS START. 
+```{r}
+coordinates(surfaces)=~Y+X
+```
+
+```{r}
+variogram_bthickness= autofitVariogram(MM~1,
+#model="Exp",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(variogram_bthickness)
+```
+
+```{r}
+tiff("vario_oxford_thickness.tif", units="in", width=10, height=7, res=300)
+plot(variogram_bthickness)
+dev.off()
+```
+#VARIOGRAM THICKNESS STOP. 
+
+#KRIGING THICKNESS START. 
+```{r}
+wynikMMthickness=autoKrige(MM~1,
+# model="Sph",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+wynikMMthickness = as.data.frame(wynikMMthickness$krige_output)
+```
+
+```{r}
+kriging_oxford_thickness<-ggplot(wynikMMthickness, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Thickness", colours = jet )+
+xlab("X")+
+ylab("Y")+
+ggtitle("Isopach map of Oxfordian sediments")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_oxford_thickness
+```
+
+```{r}
+tiff("kriging_oxford_thickness.tif", units="in", width=10, height=7, res=300)
+kriging_oxford_thickness
+dev.off()
+```
+#KRIGING THICKNESS STOP.
+
+#LAGGED SCATTERPLOTS START
+```{r}
+MCL_df_sp <- st_as_sf(MCL_df_sp, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(MQ_df_sp)
+```
+
+```{r}
+hscatMCL<-hscat(log(AngularDistance_normals+1)~1, data=MCL_df_sp, breaks=seq(0, 3000, by=500))
+```
+
+```{r}
+hscatMCL
+```
+
+```{r}
+tiff("hscat_oxford_aalen.tif", units="in", width=10, height=7, res=300)
+hscatMCL
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+class(MCL_df)
+```
+
+```{r}
+coordinates(MCL_df)=~Y1_C+X1_C
+```
+
+```{r}
+variogram_b= autofitVariogram(log(AngularDistance_normals+1)~1,
+#  model="Exp",
+input_data= MCL_df,
+  miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram_b)
+```
+
+```{r}
+tiff("vario_oxford_aalen.tif", units="in", width=10, height=7, res=300)
+plot(variogram_b)
+dev.off()
+```
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikMCL=autoKrige(log(AngularDistance_normals+1)~1,
+#model="Exp",
+input_data= MCL_df,
+miscFitOptions = list(min.np.bin =50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikMCL)
+```
+
+```{r}
+wynikMCL = as.data.frame(wynikMCL$krige_output)
+```
+
+```{r}
+nrow(wynikMCL)
+```
+
+```{r}
+kriging_oxford_aalen<-ggplot(wynikMCL, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("log(x+1)", colours = jet )+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("log(angular distance+1) between contacts \n Oxfordian/Callovian vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_oxford_aalen
+```
+
+```{r}
+tiff("kriging_oxford_aalen.tif", units="in", width=10, height=7, res=300)
+kriging_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+#EXPLORATORY ANALYSIS FOR ANGULAR DISTANCES START
+```{r}
+QCL_df<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+nrow(QCL_df)
+```
+
+```{r}
+ggplot(QCL_df, aes(x=Y1_C, y=X1_C, col=AngularDistance_normals))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+colnames(QCL_df)
+```
+
+```{r}
+ggplot(QCL_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=25
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(QCL_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR ANGULAR DISTANCES STOP
+
+#FILTERING START
+```{r}
+QCL_df<- dplyr::filter(QCL_df, log(AngularDistance_normals+1)<(2.5))
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START.
+```{r}
+ggplot(QCL_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=25
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(QCL_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP.
+
+
+#GIVING SPATIAL STRUCTURE START.
+```{r}
+QCL_df_sp <- st_as_sf(QCL_df, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+head(QCL_df_sp)
+```
+
+#GIVING SPATIAL STRUCTURE STOP.
+
+#DETERMINISTIC MODELS START.
+
+```{r}
+fldlog <- with(QCL_df, interp(x = Y1_C, y = X1_C, z = log(AngularDistance_normals+1), linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+```
+
+
+```{r}
+tiff("akima_interpolation_quaternary_aalen.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP.
+
+#THICKNESS START. 
+
+```{r}
+surfaces<- read.csv("boreholes.csv", header=TRUE, sep=";", dec=".")
+```
+
+
+```{r}
+fldlog <- with(surfaces, interp(x = Y, y = X, z = MWB+MK, linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Isopach map of Częstochowa Ore-Bearing \n Clay Fm + Callovian sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_bajocianaalenian_plus_callovian_thickness.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Isopach map of Częstochowa Ore-Bearing \n Clay Fm + Callovian sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+dev.off()
+```
+#THICKNESS STOP.
+
+#LAGGED SCATTERPLOT THICKNESS  START. 
+```{r}
+surfaces_sp <- st_as_sf(surfaces, coords = c("Y", "X"))
+```
+
+```{r}
+class(surfaces_sp)
+```
+
+```{r}
+hscatMWBthickness<-hscat(MWB+MK~1, data=surfaces_sp, breaks=seq(0, 20000, by=3000))
+```
+
+```{r}
+hscatMWBthickness
+```
+
+```{r}
+tiff("hscat_bajocian_plus_callovian_thickness.tif", units="in", width=10, height=7, res=300)
+hscatMWBthickness
+dev.off()
+```
+#LAGGED SCATTERPLOT THICKNESS STOP. 
+
+#VARIOGRAM THICKNESS START. 
+```{r}
+coordinates(surfaces)=~Y+X
+```
+
+```{r}
+variogram_cthickness= autofitVariogram(MWB+MK~1,
+#model="Exp",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram_cthickness)
+```
+
+```{r}
+tiff("vario_bajocian_plus_callovian_thickness.tif", units="in", width=10, height=7, res=300)
+plot(variogram_cthickness)
+dev.off()
+```
+#VARIOGRAM THICKNESS STOP. 
+
+#KRIGING THICKNESS START. 
+```{r}
+wynikCLthickness=autoKrige(MWB+MK~1,
+# model="Sph",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+wynikCLthickness = as.data.frame(wynikCLthickness$krige_output)
+```
+
+```{r}
+kriging_bajocian_thickness<-ggplot(wynikCLthickness, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Thickness", colours = jet )+
+xlab("X")+
+ylab("Y")+
+ggtitle("Isopach map of Częstochowa Ore-Bearing \n Clay Fm + Callovian sediments")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_bajocian_thickness
+```
+
+```{r}
+tiff("kriging_bajocian_plus_callovian_thickness.tif", units="in", width=10, height=7, res=300)
+kriging_bajocian_thickness
+dev.off()
+```
+#KRIGING THICKNESS STOP.
+
+#LAGGED SCATTERPLOTS START.
+```{r}
+hscatQCL<- hscat(log(AngularDistance_normals+1)~1, data=QCL_df_sp, breaks=seq(0, 3000, by=500))
+```
+
+```{r}
+hscatQCL
+```
+
+```{r}
+tiff("hscat_quaternary_aalen.tif", units="in", width=10, height=7, res=300)
+hscatQCL
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+
+```{r}
+coordinates(QCL_df)=~Y1_C+X1_C
+```
+
+```{r}
+variogram_c= autofitVariogram(log(AngularDistance_normals+1)~1,
+#  model="Exp",
+input_data= QCL_df,
+  miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram_c)
+```
+
+
+```{r}
+png("vario_quaternary_aalen.png", units="in", width=10, height=7, res=300)
+plot(variogram_c)
+dev.off()
+```
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikQCL=autoKrige(log(AngularDistance_normals+1)~1,
+#model="Exp",
+input_data= QCL_df,
+miscFitOptions = list(min.np.bin=50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikQCL)
+```
+
+```{r}
+wynikQCL = as.data.frame(wynikQCL$krige_output)
+```
+
+```{r}
+nrow(wynikQCL)
+```
+
+```{r}
+kriging_quaternary_aalen<-ggplot(wynikQCL, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("log(x+1)", colours = jet )+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_quaternary_aalen
+```
+
+```{r}
+tiff("kriging_quaternary_aalen.tiff", units="in", width=10, height=7, res=300)
+kriging_quaternary_aalen
+dev.off()
+```
+#KRIGING STOP
+
+#Exploratory analysis for angular distances START
+```{r}
+QCal_df<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+nrow(QCal_df)
+```
+
+```{r}
+ggplot(QCal_df, aes(x=Y1_C, y=X1_C, col=AngularDistance_normals))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+colnames(QCal_df)
+```
+
+```{r}
+ggplot(QCal_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(QCal_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Exploratory analysis for angular distances STOP
+
+
+#Filtering START
+
+```{r}
+QCal_df<- dplyr::filter(QCal_df, log(AngularDistance_normals+1)<1.5)
+```
+
+#Filtering STOP
+
+#Checking histograms after filtering START
+
+```{r}
+ggplot(QCal_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(QCal_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Checking histograms after filtering STOP
+
+
+
+#GIVING SPATIAL STRUCTURE START
+
+```{r}
+QCal_df_sp <- st_as_sf(QCal_df, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+head(QCal_df_sp)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+
+```{r}
+fldlog <- with(QCal_df, interp(x = Y1_C, y = X1_C, z = log(AngularDistance_normals+1), linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_callovian_koscieliska.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+QCal_df_sp <- st_as_sf(QCal_df_sp, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(QCal_df_sp)
+```
+
+```{r}
+hscatQCal<-hscat(log(AngularDistance_normals+1)~1, data=QCal_df_sp, breaks=seq(0, 3000, by=500))
+```
+
+```{r}
+hscatQCal
+```
+
+```{r}
+tiff("hscatQCal.tif", units="in", width=10, height=7, res=300)
+hscatQCal
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+class(QCal_df)
+```
+
+```{r}
+coordinates(QCal_df)=~Y1_C+X1_C
+```
+
+```{r}
+variogram_b= autofitVariogram(log(AngularDistance_normals+1)~1,
+#  model="Exp",
+input_data= QCal_df,
+  miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram_b)
+```
+
+```{r}
+tiff("vario_QCal_.tif", units="in", width=10, height=7, res=300)
+plot(variogram_b)
+dev.off()
+```
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikQCal=autoKrige(log(AngularDistance_normals+1)~1,
+#model="Exp",
+input_data= QCal_df,
+miscFitOptions = list(min.np.bin =50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(wynikQCal)
+```
+
+```{r}
+wynikQCal = as.data.frame(wynikQCal$krige_output)
+```
+
+```{r}
+kriging_wynikQCal<-ggplot(wynikQCal, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("log(x+1)", colours = jet )+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("log(angular distance+1) between contacts \n Quaternary/Oxfordian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_wynikQCal
+```
+
+```{r}
+tiff("kriging_wynik_q_o_call_ily.tif", units="in", width=10, height=7, res=300)
+kriging_wynikQCal
+dev.off()
+```
+#KRIGING STOP
+
+
+
+#Exploratory analysis for angular distances START
+```{r}
+CalCl_df<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_23.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+nrow(CalCl_df)
+```
+
+```{r}
+ggplot(CalCl_df, aes(x=Y1_C, y=X1_C, col=AngularDistance_normals))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Angular distance between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+colnames(CalCl_df)
+```
+
+```{r}
+ggplot(CalCl_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm vs.\n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(CalCl_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm \n vs. Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Exploratory analysis for angular distances STOP
+
+
+#Filtering START
+
+```{r}
+CalCl_df<- dplyr::filter(CalCl_df, log(AngularDistance_normals+1)<1.5)
+```
+
+#Filtering STOP
+
+#Checking histograms after filtering START
+
+```{r}
+ggplot(CalCl_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(CalCl_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Checking histograms after filtering STOP
+
+
+
+#GIVING SPATIAL STRUCTURE START
+
+```{r}
+CalCl_df_sp <- st_as_sf(CalCl_df, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+head(CalCl_df_sp)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+
+```{r}
+fldlog <- with(CalCl_df, interp(x = Y1_C, y = X1_C, z = log(AngularDistance_normals+1), linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation__strop_spag_koscieliskie.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "log(x+1)", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+CalCl_df_sp <- st_as_sf(CalCl_df_sp, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(CalCl_df_sp)
+```
+
+```{r}
+hscatCalCl_df<-hscat(log(AngularDistance_normals+1)~1, data=CalCl_df_sp, breaks=seq(0, 3000, by=500))
+```
+
+```{r}
+hscatCalCl_df
+```
+
+```{r}
+tiff("hscatCalCl_df.tif", units="in", width=10, height=7, res=300)
+hscatCalCl_df
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+class(CalCl_df)
+```
+
+```{r}
+coordinates(CalCl_df)=~Y1_C+X1_C
+```
+
+```{r}
+variogram_b= autofitVariogram(log(AngularDistance_normals+1)~1,
+#  model="Exp",
+input_data= CalCl_df,
+  miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram_b)
+```
+
+```{r}
+tiff("vario_CalCl_df_.tif", units="in", width=10, height=7, res=300)
+plot(variogram_b)
+dev.off()
+```
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikCalCl_df=autoKrige(log(AngularDistance_normals+1)~1,
+#model="Exp",
+input_data= CalCl_df,
+miscFitOptions = list(min.np.bin =50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(wynikCalCl_df)
+```
+
+```{r}
+wynikCalCl_df = as.data.frame(wynikCalCl_df$krige_output)
+```
+
+```{r}
+kriging_wynikCalCl_df<-ggplot(wynikCalCl_df, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("log(x+1)", colours = jet )+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("log(angular distance+1) between contacts \n Callovian/Częstochowa Ore-Bearing Clay Fm vs. \n Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_wynikCalCl_df
+```
+
+```{r}
+tiff("kriging_wynik_call_ily_ily_koscieliskie_df.tif", units="in", width=10, height=7, res=300)
+kriging_wynikCalCl_df
+dev.off()
+```
+#KRIGING STOP
+
+
+#Exploratory analysis for angular distances START
+```{r}
+OCal_df<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+nrow(OCal_df)
+```
+
+```{r}
+ggplot(OCal_df, aes(x=Y1_C, y=X1_C, col=AngularDistance_normals))+
+geom_point(size=1)+
+scale_colour_gradient(low = "green", high = "red", na.value = NA)+
+ggtitle("Angular distance between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+colnames(OCal_df)
+```
+
+```{r}
+ggplot(OCal_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(OCal_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Exploratory analysis for angular distances STOP
+
+
+#Filtering START
+
+```{r}
+OCal_df<- dplyr::filter(OCal_df, log(AngularDistance_normals+1)<1.5)
+```
+
+#Filtering STOP
+
+#Checking histograms after filtering START
+
+```{r}
+ggplot(OCal_df,  aes(x=AngularDistance_normals))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Angular distance between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm") +
+xlab("angular distance")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(OCal_df,  aes(x=log(AngularDistance_normals+1)))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=15
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm") +
+xlab("log(x+1)")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#Checking histograms after filtering STOP
+
+
+
+#GIVING SPATIAL STRUCTURE START
+
+```{r}
+OCal_df_sp <- st_as_sf(OCal_df, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+head(OCal_df_sp)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+
+```{r}
+fldlog <- with(OCal_df, interp(x = Y1_C, y = X1_C, z = log(AngularDistance_normals+1), linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm",
+key.title = title(main = "log(x+1)", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_ox_cal_cal_ily.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm",
+key.title = title(main = "log(x+1)", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+OCal_df_sp <- st_as_sf(OCal_df_sp, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(OCal_df_sp)
+```
+
+```{r}
+hscatOCal<-hscat(log(AngularDistance_normals+1)~1, data=OCal_df_sp, breaks=seq(0, 3000, by=500))
+```
+
+```{r}
+hscatOCal
+```
+
+```{r}
+tiff("hscatOCal.tif", units="in", width=10, height=7, res=300)
+hscatOCal
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+class(OCal_df)
+```
+
+```{r}
+coordinates(OCal_df)=~Y1_C+X1_C
+```
+
+```{r}
+variogram_b= autofitVariogram(log(AngularDistance_normals+1)~1,
+#  model="Exp",
+input_data= OCal_df,
+  miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram_b)
+```
+
+```{r}
+tiff("vario_OCal_.tif", units="in", width=10, height=7, res=300)
+plot(variogram_b)
+dev.off()
+```
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikOCal=autoKrige(log(AngularDistance_normals+1)~1,
+#model="Exp",
+input_data= OCal_df,
+miscFitOptions = list(min.np.bin =50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(wynikOCal)
+```
+
+```{r}
+wynikOCal = as.data.frame(wynikOCal$krige_output)
+```
+
+```{r}
+kriging_wynikOCal<-ggplot(wynikOCal, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("log(x+1)", colours = jet )+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("log(angular distance+1) between contacts \n Oxfordian/Callovian vs. Callovian/Częstochowa \n Ore-Bearing Clay Fm")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_wynikOCal
+```
+
+```{r}
+tiff("kriging_wynik_ox_cal__call_ily.tif", units="in", width=10, height=7, res=300)
+kriging_wynikOCal
+dev.off()
+```
+#KRIGING STOP
+
+
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+
+```{r}
+difmap1a<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords<- dplyr::select(difmap1a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+
+```{r}
+dif_ang<- difmap1a$AngularDistance_normals-difmap1b$AngularDistance_normals
+```
+
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DIFFERENCE START
+```{r}
+dif_log<- log(difmap1a$AngularDistance_normals+1)-log(difmap1b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df1<- cbind(coords, dif_ang, dif_log)
+```
+
+```{r}
+colnames(dif_df1)
+```
+#DEFINING LOG DIFFERENCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START.
+
+```{r}
+ggplot(dif_df1,  aes(x=dif_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df1,  aes(x=dif_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP.
+
+#FILTERING START
+
+```{r}
+dif_df1<-dplyr::filter(dif_df1, dif_log> -1 & dif_log < 1)
+```
+
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START.
+
+```{r}
+ggplot(dif_df1,  aes(x=dif_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+ggplot(dif_df1,  aes(x=dif_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP.
+
+#GIVING SPATIAL STRUCTURE START
+
+```{r}
+dif_df_sp <- st_as_sf(dif_df1, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+colnames(dif_df_sp)
+```
+
+```{r}
+class(dif_df_sp)
+```
+
+```{r}
+summary(dif_df_sp$dif_log)
+```
+
+```{r}
+table(is.na(dif_df_sp))
+```
+
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df1, interp(x = Y1_C, y = X1_C, z = dif_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_quaternary_vs_oxford_minus_oxford_vs_aalen.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Oxfordian/Callovian minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrOANDOrA<-hscat(dif_log~1, data=dif_df_sp, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_QrOANDOrA.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrOANDOrA
+dev.off()
+```
+
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+
+```{r}
+coordinates(dif_df1)=~Y1_C+X1_C
+```
+
+```{r}
+variogram1= autofitVariogram(dif_log~1,
+#  model="Exp",
+input_data= dif_df1,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram1)
+```
+```{r}
+tiff("vario_QrOANDOrA.tif", units="in", width=10, height=7, res=300)
+plot(variogram1)
+dev.off()
+```
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif=autoKrige(dif_log~1,
+#model="Exp",
+input_data= dif_df1,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif = as.data.frame(wynikdif$krige_output)
+```
+
+```{r}
+nrow(wynikdif)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_oxford_minus_oxford_aalen<-ggplot(wynikdif, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred), alpha=0.5) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian \n minus Oxfordian/Callovian- \n Częstochowa Ore-Bearing Clay Fm/ \n Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_oxford_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_quaternary_oxford_minus_oxford_aalen.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_oxford_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Częstochowa Ore-Bearing \n  Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa  \n Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_quaternary_vs_aalen_minus_oxford_vs_aalen.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds minus \n Oxfordian/Callovian-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_QrAANDOrA.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_QrAANDOrA.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Quaternary/Oxfordian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds \n minus  Oxfordian/Callovian- Częstochowa \n Ore-Bearing Clay Fm/ Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_quaternary_aalen_minus_oxford_aalen.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap3a<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+difmap3b<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords3<- dplyr::select(difmap3a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif3_ang<- difmap3a$AngularDistance_normals-difmap3b$AngularDistance_normals
+```
+
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif3_log<- log(difmap3a$AngularDistance_normals+1)-log(difmap3b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df3<- cbind(coords3, dif3_ang, dif3_log)
+```
+
+```{r}
+colnames(dif_df3)
+```
+
+```{r}
+summary(dif_df3)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df3,  aes(x=dif3_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian \n minus Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df3,  aes(x=dif3_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+```{r}
+dif_df3<-dplyr::filter(dif_df3, dif3_log> -1 & dif3_log<1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df3,  aes(x=dif3_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df3,  aes(x=dif3_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp3 <- st_as_sf(dif_df3, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp3)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df3, interp(x = Y1_C, y = X1_C, z = dif3_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Oxfordian/Callovian minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_quaternary_vs_oxford_minus_quaternary_vs_aalen.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Oxfordian/Callovian minus \n Quaternary/Oxfordian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrOANDQrA <-hscat(dif3_log~1, data=dif_df_sp3, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_QrOANDQrA.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrOANDQrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df3)=~Y1_C+X1_C
+```
+
+```{r}
+variogram3= autofitVariogram(dif3_log~1,
+#model="Exp",
+input_data= dif_df3,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram3)
+```
+
+```{r}
+tiff("vario_QrOANDQrA.tif", units="in", width=10, height=7, res=300)
+plot(variogram3)
+dev.off()
+```
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif3=autoKrige(          dif3_log~1,
+#model="Exp",
+input_data= dif_df3,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif3)
+```
+
+```{r}
+wynikdif3 = as.data.frame(wynikdif3$krige_output)
+```
+
+```{r}
+nrow(wynikdif3)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif3$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_oxford_minus_quaternary_aalen<-ggplot(wynikdif3, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Quaternary/Oxfordian-Oxfordian/Callovian \n minus Quaternary/Oxfordian- \n Częstochowa Ore-Bearing Clay Fm/ \n Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_oxford_minus_quaternary_aalen
+```
+
+```{r}
+tiff("Difmap_quaternary_oxford_minus_quaternary_aalen.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_oxford_minus_quaternary_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+#Difference maps Callovian START
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_02.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing \n Clay Fm Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm Beds minus \n Quaternary/Oxfordian-Oxfordian/Callovian",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_02_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm Beds minus \n Quaternary/Oxfordian-Oxfordian/Callovian",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_02_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_02_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm Beds minus \n Quaternary/Oxfordian-Oxfordian/Callovian")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_02_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_02.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_02_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus Quaternary/Oxfordian- \nCzęstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_02_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_02_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Quaternary/Oxfordian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_02_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_02.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Oxfordian/Callovian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_02_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_02_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_02_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Quaternary/Oxfordian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Oxfordian/Callovian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_02_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_12.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Oxfordian/Callovian",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_12_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Quaternary/Oxfordian-Oxfordian/Callovian",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_12_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_12_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Quaternary/Oxfordian-Oxfordian/Callovian")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_12_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+
+
+
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_12.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_12_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing \n Clay Fm minus Quaternary/Oxfordian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_12_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_12_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus Quaternary/Oxfordian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_12_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_12.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Oxfordian/Callovian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Oxfordian/Callovian-Callovian/Częstochowa Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_12_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus Oxfordian/Callovian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_12_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_12_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Oxfordian/Callovian-Callovian/Częstochowa \n Ore-Bearing Clay Fm minus \n Oxfordian/Callovian-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_12_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+
+
+
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_23.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Oxfordian/Callovian") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Oxfordian/Callovian",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_23_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Callovian/Częstochowa Ore-Bearing Clay \n Fm-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds minus Quaternary/Oxfordian-Oxfordian/Callovian",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_23_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_23_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay \n Fm-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds minus Quaternary/Oxfordian-Oxfordian/Callovian")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_23_NOWY_01_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_23.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay \n Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska \n Beds minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa \n Ore-Bearing Clay Fm/Kościeliska Beds minus \n Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_23_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Callovian/Częstochowa Ore-Bearing Clay \n Fm-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds minus Quaternary/Oxfordian-Częstochowa \n Ore-Bearing  Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_23_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_23_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay \n Fm-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds minus \n Quaternary/Oxfordian-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_23_NOWY_02_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS START
+```{r}
+difmap2a<-read.csv("quaternary_oxford_aalen_good_columns_2022t_output_23.txt", header = TRUE, sep = ";", dec=".")
+difmap2b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+```
+
+```{r}
+coords2<- dplyr::select(difmap2a, c("X1_C", "Y1_C"))
+```
+
+#INTRODUCTION TO DISTANCE DIFFERENCE ANALYSIS STOP
+
+#DEFINING DIFFERENCE START
+```{r}
+dif2_ang<- difmap2a$AngularDistance_normals-difmap2b$AngularDistance_normals
+```
+#DEFINING DIFFERENCE STOP
+
+#DEFINING LOG DISTANCE START
+```{r}
+dif2_log<- log(difmap2a$AngularDistance_normals+1)-log(difmap2b$AngularDistance_normals+1)
+```
+
+```{r}
+dif_df2<- cbind(coords2, dif2_ang, dif2_log)
+```
+
+```{r}
+colnames(dif_df2)
+```
+
+```{r}
+summary(dif_df2)
+```
+#DEFINING LOG DISTANCE STOP
+
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#EXPLORATORY ANALYSIS FOR THE DISTANCE DIFFERENCE STOP
+
+#FILTERING START
+
+```{r}
+dif_df2<-dplyr::filter(dif_df2, dif2_log> -1 & dif2_log< 1)
+```
+#FILTERING STOP
+
+#CHECKING HISTOGRAMS AFTER FILTERING START
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_ang))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of angular distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(dif_df2,  aes(x=dif2_log))+
+geom_histogram(col="black",
+fill="lightcoral",
+bins=13
+)+
+scale_x_continuous(breaks=pretty_breaks(10)) +
+scale_y_continuous(breaks=pretty_breaks(5)) +
+ggtitle("Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds") +
+xlab("difference of log distances")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+#CHECKING HISTOGRAMS AFTER FILTERING STOP
+
+
+
+
+#GIVING SPATIAL STRUCTURE START
+```{r}
+dif_df_sp2 <- st_as_sf(dif_df2, coords = c("Y1_C", "X1_C"))
+```
+
+```{r}
+class(dif_df_sp2)
+```
+#GIVING SPATIAL STRUCTURE STOP
+
+#DETERMINISTIC MODELS START
+```{r}
+flddif<- with(dif_df2, interp(x = Y1_C, y = X1_C, z = dif2_log, linear=T))
+```
+
+```{r}
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Callovian/Częstochowa Ore-Bearing Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+```
+
+```{r}
+tiff("akima_23_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = flddif$x,
+y = flddif$y,
+z = flddif$z,
+color.palette = brewer.pal(n = 11, name = "Spectral"),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Callovian/Częstochowa Ore-Bearing Clay \n Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska \n  Beds minus  Oxfordian/Callovian-Częstochowa Ore-Bearing \n Clay Fm/Kościeliska Beds",
+key.title = title(main = "Difference", cex.main = 1))
+dev.off()
+```
+#DETERMINISTIC MODELS STOP
+
+#LAGGED SCATTERPLOTS START
+```{r}
+hscat_dif_QrAANDOrA <-hscat(dif2_log~1, data=dif_df_sp2, breaks=seq(0, 3000, by=400))
+```
+
+```{r}
+tiff("hscat_dif_23_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+hscat_dif_QrAANDOrA
+dev.off()
+```
+#LAGGED SCATTERPLOTS STOP
+
+#VARIOGRAM START
+```{r}
+coordinates(dif_df2)=~Y1_C+X1_C
+```
+
+```{r}
+variogram2= autofitVariogram(dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram2)
+```
+
+```{r}
+tiff("vario_23_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+plot(variogram2)
+dev.off()
+```
+
+
+#VARIOGRAM STOP
+
+#KRIGING START
+```{r}
+wynikdif2=autoKrige(          dif2_log~1,
+#model="Exp",
+input_data= dif_df2,
+miscFitOptions = list(min.np.bin = 50),
+fix.values = c(NA,NA,NA))
+
+```
+
+```{r}
+plot(wynikdif)
+```
+
+```{r}
+wynikdif2 = as.data.frame(wynikdif2$krige_output)
+```
+
+```{r}
+nrow(wynikdif2)
+```
+
+```{r}
+spectral<- brewer.pal(n = 11, name = "Spectral")
+```
+
+```{r}
+spectral
+```
+
+```{r}
+summary(wynikdif2$var1.pred)
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen<-ggplot(wynikdif2, aes(x = x1, y = x2)) +
+geom_raster(aes(fill = var1.pred)) + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Difference",
+colors=spectral,
+values = rescale(c(-0.75,0,2.7)),
+guide = "colorbar", limits=c(-0.75,2.7))+
+xlab("X_C")+
+ylab("Y_C")+
+ggtitle("Callovian/Częstochowa Ore-Bearing \n Clay Fm-Częstochowa Ore-Bearing Clay Fm/Kościeliska \n Beds minus Oxfordian/Callovian-Częstochowa Ore-Bearing Clay \n Fm/Kościeliska Beds")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+Difmap_quaternary_aalen_minus_oxford_aalen
+```
+
+```{r}
+tiff("Difmap_23_NOWY_12_STARY.tif", units="in", width=10, height=7, res=300)
+Difmap_quaternary_aalen_minus_oxford_aalen
+dev.off()
+```
+#KRIGING STOP
+
+
+
+
+
+#Difference maps Callovian STOP
+
+
+
+#Complex figures START
+
+```{r}
+par(mfrow = c(3, 2))
+plot(hscatMQ)
+plot(hscatMCL)
+plot(hscatQCL)
+plot(variogram_a)
+plot(variogram_b)
+plot(variogram_c)
+```
+
+
+```{r}
+krigings<- ggarrange(kriging_quaternary_oxford, kriging_quaternary_aalen, kriging_oxford_aalen,  ncol=2, nrow=2, labels=c("A", "B", "C", "D"), common.legend = FALSE)
+```
+
+```{r}
+tiff("krigings.tif", units="in", width=10, height=7, res=300)
+krigings
+dev.off()
+```
+
+
+```{r}
+krigings2<- ggarrange(Difmap_quaternary_oxford_minus_quaternary_aalen, Difmap_quaternary_aalen_minus_oxford_aalen, Difmap_quaternary_oxford_minus_oxford_aalen,  ncol=2, nrow=2, labels=c("A", "B", "C", "D"), common.legend = FALSE)
+```
+
+```{r}
+tiff("krigings2.tif", units="in", width=10, height=7, res=300)
+krigings2
+dev.off()
+```
+
+
+#Complex figures STOP
+
+#Additional analysis: Callovian START
+#THICKNESS START.
+
+```{r}
+surfaces<- read.csv("boreholes.csv", header=TRUE, sep=";", dec=".")
+```
+
+
+```{r}
+fldlog <- with(surfaces, interp(x = Y, y = X, z = MK, linear=T))
+```
+
+```{r}
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Isopach map of Callovian sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+```
+
+```{r}
+tiff("akima_interpolation_Callovian_thickness.tif", units="in", width=10, height=7, res=300)
+filled.contour(x = fldlog$x,
+y = fldlog$y,
+z = fldlog$z,
+color.palette =
+colorRampPalette(jet.colors(100)),
+xlab = "X_C",
+ylab = "Y_C",
+main = "Isopach map of Callovian sediments",
+key.title = title(main = "Thickness", cex.main = 1))
+dev.off()
+```
+#THICKNESS STOP.
+
+#LAGGED SCATTERPLOT THICKNESS  START. 
+```{r}
+surfaces_sp <- st_as_sf(surfaces, coords = c("Y", "X"))
+```
+
+```{r}
+class(surfaces_sp)
+```
+
+```{r}
+hscatMKthickness<-hscat(MK~1, data=surfaces_sp, breaks=seq(0, 3000, by=600))
+```
+
+```{r}
+hscatMKthickness
+```
+
+```{r}
+tiff("hscat_callovian_thickness.tif", units="in", width=10, height=7, res=300)
+hscatMKthickness
+dev.off()
+```
+#LAGGED SCATTERPLOT THICKNESS STOP. 
+
+#VARIOGRAM THICKNESS START. 
+
+```{r}
+surfaces<- read.csv("boreholes.csv", header=TRUE, sep=";", dec=".")
+```
+
+```{r}
+coordinates(surfaces)=~Y+X
+```
+
+```{r}
+variogram_dthickness= autofitVariogram(MK~1,
+#model="Exp",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+plot(variogram_dthickness)
+```
+
+```{r}
+tiff("vario_Callovian_thickness.tif", units="in", width=10, height=7, res=300)
+plot(variogram_dthickness)
+dev.off()
+```
+#VARIOGRAM THICKNESS STOP. 
+
+
+#KRIGING THICKNESS START. 
+
+```{r}
+wynikCallovianthickness=autoKrige(MK~1,
+# model="Sph",
+input_data= surfaces,
+miscFitOptions = list(min.np.bin = 100),
+fix.values = c(NA,NA,NA))
+```
+
+```{r}
+wynikCallovianthickness = as.data.frame(wynikCallovianthickness$krige_output)
+```
+
+```{r}
+kriging_callovian_thickness<-ggplot(wynikCallovianthickness, aes(x = x1, y = x2, fill = var1.pred)) +
+geom_raster() + coord_fixed() +
+stat_contour(aes(z=var1.pred), col="black")+
+scale_fill_gradientn("Thickness", colours = jet )+
+xlab("X")+
+ylab("Y")+
+ggtitle("Isopach map of Callovian sediments")+
+theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+kriging_callovian_thickness
+```
+
+```{r}
+tiff("kriging_callovian_thickness.tif", units="in", width=10, height=7, res=300)
+kriging_callovian_thickness
+dev.off()
+```
+#KRIGING THICKNESS STOP.
+
+#Additional analysis: Callovian STOP

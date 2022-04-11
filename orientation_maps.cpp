@@ -406,7 +406,7 @@ int main()
 		int inf2 = facereg->vertex(1)->info().second;
 		int inf3 = facereg->vertex(2)->info().second;
 
-		if ((inf1 > 0) & (inf2 > 0) & (inf3 > 0)) //we are interested only in points within the convex hull
+		if ((inf1 > 0) && (inf2 > 0) && (inf3 > 0)) //we are interested only in points within the convex hull
 		{
 			grid_pts_finite.push_back(Point(regpoint.x(), regpoint.y(), elevation_grid_pts));
 			gridsave << fixed << regpoint.x() << ";" << regpoint.y() << ";" << inf1 << ";" << inf2 << ";" << inf3 << endl;

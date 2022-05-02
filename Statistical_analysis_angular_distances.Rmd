@@ -142,7 +142,7 @@ shapiro.test(dane)
 Angular distances between Quaternary-Oxford and Oxford-Callovian.
 
 ```{r}
-MQ_df<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
+MQ_df<-read.csv("Distances_Quaternary_Oxford_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 
@@ -282,12 +282,12 @@ h2
 ```
 
 
-## Quaternary-Oxford i Bajocian-Aalenian
+## Quaternary-Oxford i Czestochowa-Koscieliska
 
-Angular distance between contacts: Quaternary-Oxford and Bajocian-Aalenian.
+Angular distance between contacts: Quaternary-Oxford and Czestochowa-Koscieliska.
 
 ```{r}
-MQ_dft<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+MQ_dft<-read.csv("Distances_Quaternary_Oxford_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -416,12 +416,12 @@ h4<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'log(angular 
 h4
 ```
 
-## Oxford-Callovian and Bajocian-Aalenian
+## Oxford-Callovian and Czestochowa-Koscieliska
 
-We will analyze angular distances between contacts: Oxford-Callovian and Bajocian-Aalenian.
+We will analyze angular distances between contacts: Oxford-Callovian and Czestochowa-Koscieliska.
 
 ```{r}
-MQ_dft<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+MQ_dft<-read.csv("Distances_Oxford_Callovian_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -563,13 +563,13 @@ h6
 ```
 
 
-## Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+## Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Czestochowa/Koscieliska
 
-Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Czestochowa/Koscieliska
 
 ```{r}
-difmap1a<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
-difmap1b<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
+difmap1a<-read.csv("Distances_Quaternary_Oxford_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("Distances_Quaternary_Oxford_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -686,13 +686,13 @@ h8
 ```
 
 
-## Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+## Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Czestochowa/Koscieliska
 
-Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Bajocian/Aalenian
+Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Czestochowa/Koscieliska
 
 ```{r}
-difmap1a<-read.csv("quaternary_oxford_aalen_good_columns_output_01.txt", header = TRUE, sep = ";", dec=".")
-difmap1b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+difmap1a<-read.csv("Distances_Quaternary_Oxford_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("Distances_Oxford_Callovian_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -835,17 +835,17 @@ h10<-histogram_gen(Angular_distances_QO_OC_log_transformed, title = 'Differences
 h10
 ```
 
-## Quaternary/Oxford-Bajocian/Aalenian minus Oxford/Callovian-Bajocian/Aalenian
+## Quaternary/Oxford-Czestochowa/Koscieliska minus Oxford/Callovian-Czestochowa/Koscieliska
 
-Arithmetic differences: Quaternary/Oxford-Bajocian/Aalenian minus Oxford/Callovian-Bajocian/Aalenian
+Arithmetic differences: Quaternary/Oxford-Czestochowa/Koscieliska minus Oxford/Callovian-Czestochowa/Koscieliska
 
 ```{r}
 getwd()
 ```
 
 ```{r}
-difmap1a<-read.csv("quaternary_oxford_aalen_good_columns_output_02.txt", header = TRUE, sep = ";", dec=".")
-difmap1b<-read.csv("quaternary_oxford_aalen_good_columns_output_12.txt", header = TRUE, sep = ";", dec=".")
+difmap1a<-read.csv("Distances_Quaternary_Oxford_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("Distances_Oxford_Callovian_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -961,6 +961,7 @@ generate_confidence_intervals_for_means(Angular_distances_QO_OC_log_transformed,
 ```{r}
 generate_confidence_intervals_for_variance(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=421)
 ```
+
 ```{r}
 generate_confidence_intervals_for_standard_deviation(Angular_distances_QO_OC_log_transformed,0.05,normality =FALSE, seed=2021)
 ```

@@ -82,7 +82,7 @@ public:
 		double angle;
 		double expression;
 		double coeff = 180 / M_PI;
-		expression = abs(dot_product(z_axis, normal_v)) / (length(z_axis)*length(normal_v));
+		expression = abs(dot_product(z_axis, normal_v)) / (length(z_axis) * length(normal_v));
 		angle = acos(expression);
 		return angle * coeff;
 	}
@@ -196,13 +196,13 @@ public:
 			normal_vec[1] /= normal_vector_length;
 			normal_vec[2] /= normal_vector_length;
 
-			this->dip_vec[0] = cos(dip_angle(z_axis, normal_vec) / coeff)*cos(dip_azimuth(normal_vec) / coeff);
-			this->dip_vec[1] = cos(dip_angle(z_axis, normal_vec) / coeff)*sin(dip_azimuth(normal_vec) / coeff);
+			this->dip_vec[0] = cos(dip_angle(z_axis, normal_vec) / coeff) * cos(dip_azimuth(normal_vec) / coeff);
+			this->dip_vec[1] = cos(dip_angle(z_axis, normal_vec) / coeff) * sin(dip_azimuth(normal_vec) / coeff);
 			this->dip_vec[2] = -sin(dip_angle(z_axis, normal_vec) / coeff);
 
 			double stala = 0.5; //using Heron formula to calculate area 
 			double half = stala * (length(first_vec) + length(second_vec) + length(third_vec)); // Let p=0.5(a+b+c) be the half of the circumference.
-			double s = sqrt(half*(half - length(first_vec))*(half - length(second_vec))*(half - length(third_vec))); // Then the area is sqrt(p*(p-a)(p-b)(p-c)))
+			double s = sqrt(half * (half - length(first_vec)) * (half - length(second_vec)) * (half - length(third_vec))); // Then the area is sqrt(p*(p-a)(p-b)(p-c)))
 			this->area = s;
 		}
 	}
@@ -376,12 +376,28 @@ int main()
 	std::cout << "Type in the grid resolution: (e.g. 100.00)" << endl;
 	std::cin >> resolution_step;
 
+	string path_error= path_i + "_error.txt";
+
 	Delaunay dt; //a variable storing the geometrical elements of Delaunay triangulation
 	dt.insert(pts.begin(), pts.end());
 
 	cout << "The number of points taken:" << pts.size() << ". The number of vertices in triangulation:" << dt.number_of_vertices() << endl;
 
-	if (pts.size() != dt.number_of_vertices()) { throw(runtime_error("Check for duplicates in data!")); }
+	ofstream errorsave(path_error);
+	if (pts.size() != dt.number_of_vertices()) {
+		
+		int id = 0;
+		for (Delaunay::Finite_vertices_iterator fit = dt.finite_vertices_begin(); fit != dt.finite_vertices_end(); ++fit) //a loop for performing the Delaunay triangulation and save the results
+
+		{
+			Delaunay::Vertex_handle vert = fit;
+									//extracting the dip angle and the dip direction
+			errorsave << fixed <<  vert->point().x() << ";" << vert->point().y() << ";" << vert->point().z() <<";" << id + 1 << endl;
+			id++;
+		}
+		
+		
+		throw(runtime_error("Check for duplicates in data!")); }
 
 	ofstream gridsave(path_grid);
 
@@ -532,7 +548,7 @@ int main()
 			}
 
 			string result = planes.at(plane_index).measure();							//extracting the dip angle and the dip direction
-	
+
 			saving <<
 				planes.at(plane_index).get_Points()[0] << ";" <<//coordinates start
 				planes.at(plane_index).get_Points()[1] << ";" <<
@@ -739,7 +755,7 @@ int main()
 
 			}
 
-		
+
 			normalvis << fixed << planes.at(plane_index).center()[1] << " " << planes.at(plane_index).center()[0] << " " << planes.at(plane_index).center()[2] << "\n           ";
 
 			plane_index++;
@@ -839,4 +855,3 @@ int main()
 	std::system("pause");
 	return 0;
 }
-

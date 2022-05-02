@@ -9,7 +9,6 @@
 #include <CGAL/Triangulation_2.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
 
-
 using namespace std;
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
@@ -20,7 +19,7 @@ typedef CGAL::Delaunay_triangulation_2<Gt, Tds> Delaunay;
 
 typedef K::Point_3 Point;
 
-const double coeff = 180 / M_PI; //a constant coefficient for transforming radians into degrees
+const double coeff = 180 / M_PI +1 -1; //a constant coefficient for transforming radians into degrees
 const int n = 3; //we work in 3D
 
 const double ex = 2; //we introduce the restriction of collinearity

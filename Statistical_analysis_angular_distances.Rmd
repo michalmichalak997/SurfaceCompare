@@ -142,7 +142,7 @@ shapiro.test(dane)
 Angular distances between Quaternary-Oxford and Oxford-Callovian.
 
 ```{r}
-MQ_df<-read.csv("Distances_Quaternary_Oxford_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
+MQ_df<-read.csv("Distances_Quaternary_Oxford_vs_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 
@@ -287,7 +287,7 @@ h2
 Angular distance between contacts: Quaternary-Oxford and Czestochowa-Koscieliska.
 
 ```{r}
-MQ_dft<-read.csv("Distances_Quaternary_Oxford_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
+MQ_dft<-read.csv("Distances_Quaternary_Oxford_vs_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -421,7 +421,7 @@ h4
 We will analyze angular distances between contacts: Oxford-Callovian and Czestochowa-Koscieliska.
 
 ```{r}
-MQ_dft<-read.csv("Distances_Oxford_Callovian_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
+MQ_dft<-read.csv("Distances_Oxford_Callovian_vs_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -568,8 +568,8 @@ h6
 Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Czestochowa/Koscieliska
 
 ```{r}
-difmap1a<-read.csv("Distances_Quaternary_Oxford_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
-difmap1b<-read.csv("Distances_Quaternary_Oxford_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
+difmap1a<-read.csv("Distances_Quaternary_Oxford_vs_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("Distances_Quaternary_Oxford_vs_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -691,8 +691,8 @@ h8
 Arithmetic differences: Quaternary/Oxford-Oxford/Callovian minus Oxford/Callovian-Czestochowa/Koscieliska
 
 ```{r}
-difmap1a<-read.csv("Distances_Quaternary_Oxford_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
-difmap1b<-read.csv("Distances_Oxford_Callovian_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
+difmap1a<-read.csv("Distances_Quaternary_Oxford_vs_Oxford_Callovian.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("Distances_Oxford_Callovian_vs_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:
@@ -844,8 +844,8 @@ getwd()
 ```
 
 ```{r}
-difmap1a<-read.csv("Distances_Quaternary_Oxford_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
-difmap1b<-read.csv("Distances_Oxford_Callovian_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
+difmap1a<-read.csv("Distances_Quaternary_Oxford_vs_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
+difmap1b<-read.csv("Distances_Oxford_Callovian_vs_Czestochowa_Koscieliska.txt", header = TRUE, sep = ";", dec=".")
 ```
 
 Analysis of angular distance expressed in degree units - we filter the data set:

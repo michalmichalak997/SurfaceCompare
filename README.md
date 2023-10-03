@@ -52,7 +52,7 @@ Windows 10 Home, 64-bit, processor x64.
 
 ### Software required 
 
-Vversion numbers can be different, those used in our work are given: 
+Version numbers can be different, those used in our work are given: 
 
   -Microsoft Visual Studio 2017, 
   
